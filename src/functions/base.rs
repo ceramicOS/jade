@@ -1,5 +1,5 @@
 use crate::internal::exec::*;
-use crate::internal::files::append_file;
+use crate::internal::files::{append_file, sed_file};
 use crate::internal::*;
 use log::warn;
 use std::path::PathBuf;
@@ -101,7 +101,7 @@ pub fn genfstab() {
     );
 }
 
-pub fn install_bootloader_efi(efidir: PathBuf) {
+pub fn install_bootloader_efi(efidir: PathBuf, encrypt: bool) {
     install::install(vec![
         "grub",
         "efibootmgr",
@@ -113,6 +113,9 @@ pub fn install_bootloader_efi(efidir: PathBuf) {
     let efi_str = efidir.to_str().unwrap();
     if !std::path::Path::new(&format!("/mnt{efi_str}")).exists() {
         crash(format!("The efidir {efidir:?} doesn't exist"), 1);
+    }
+    if encrypt {
+        install_bootloader_encryption(true);
     }
     exec_eval(
         exec_chroot(
@@ -153,7 +156,7 @@ pub fn install_bootloader_efi(efidir: PathBuf) {
     );
 }
 
-pub fn install_bootloader_legacy(device: PathBuf) {
+pub fn install_bootloader_legacy(device: PathBuf, encrypt: bool) {
     install::install(vec![
         "grub",
         "crystal-grub-theme",
@@ -164,6 +167,9 @@ pub fn install_bootloader_legacy(device: PathBuf) {
         crash(format!("The device {device:?} does not exist"), 1);
     }
     let device = device.to_string_lossy().to_string();
+    if encrypt {
+        install_bootloader_encryption(false);
+    }
     exec_eval(
         exec_chroot(
             "grub-install",
@@ -185,6 +191,18 @@ pub fn install_bootloader_legacy(device: PathBuf) {
         ),
         "create grub.cfg",
     );
+    if encrypt {
+        exec_eval(
+            exec(
+                "bash",
+                vec![
+                    String::from("-c"),
+                    String::from("sed -i 's/root=UUID=[^ ]* rw/rw/g' /mnt/boot/grub/grub.cfg"),
+                ],
+            ),
+            "remove root=UUID from grub",
+        );
+    }
 }
 
 pub fn setup_timeshift() {
@@ -223,3 +241,54 @@ pub fn install_zram() {
         "Write zram-generator config",
     );
 }
+
+pub fn install_bootloader_encryption(efi: bool) {
+    files_eval(
+        sed_file(
+            "/mnt/etc/mkinitcpio.conf",
+            "HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block filesystems fsck)",
+            "HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block encrypt filesystems fsck)"
+        ),
+        "enable encryption in mkinitcpio",
+    );
+
+    files_eval(
+        sed_file(
+            "/mnt/etc/default/grub",
+            "GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet\"",
+            "GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet cryptdevice=UUID=:crystal_root root=/dev/mapper/crystal_root\""
+        ),
+        "enable encryption in grub",
+    );
+    exec_eval(
+        exec(
+            "chmod",
+            vec![
+                String::from("-x"),
+                String::from("/tmp/encryption.sh"),
+            ],
+        ),
+        "Make encryption script executable",
+    );
+    exec_eval(
+        exec(
+            "bash",
+            vec![
+                String::from("/tmp/encryption.sh"),
+            ],
+        ),
+        "Run encryption script",
+    );
+    exec_eval(
+        exec_chroot(
+            "mkinitcpio",
+            vec![
+                String::from("-P"),
+            ],
+        ),
+        "Regenerate initramfs",
+    );
+}
+
+
+

@@ -14,7 +14,7 @@ fn main() {
     match opt.command {
         Command::Partition(args) => {
             let mut partitions = args.partitions;
-            partition::partition(args.device, args.mode, args.efi, &mut partitions);
+            partition::partition(args.device, args.mode, args.efi, args.encrypted, args.password, &mut partitions);
         }
         Command::InstallBase(args) => {
             base::install_base_packages(args.kernel);
@@ -24,11 +24,11 @@ fn main() {
         }
         Command::SetupTimeshift => base::setup_timeshift(),
         Command::Bootloader { subcommand } => match subcommand {
-            BootloaderSubcommand::GrubEfi { efidir } => {
-                base::install_bootloader_efi(efidir);
+            BootloaderSubcommand::GrubEfi { efidir, encrypted } => {
+                base::install_bootloader_efi(efidir, encrypted);
             }
-            BootloaderSubcommand::GrubLegacy { device } => {
-                base::install_bootloader_legacy(device);
+            BootloaderSubcommand::GrubLegacy { device, encrypted } => {
+                base::install_bootloader_legacy(device, encrypted);
             }
         },
         Command::Locale(args) => {

@@ -26,6 +26,8 @@ struct Partition {
     device: String,
     mode: PartitionMode,
     efi: bool,
+    encrypted: bool,
+    password: String,
     partitions: Vec<String>,
 }
 
@@ -96,6 +98,8 @@ pub fn read_config(configpath: PathBuf) {
         device,
         config.partition.mode,
         config.partition.efi,
+        config.partition.encrypted,
+        config.partition.password,
         &mut partitions,
     );
     base::install_base_packages(config.kernel);
@@ -104,9 +108,9 @@ pub fn read_config(configpath: PathBuf) {
     log::info!("Installing bootloader : {}", config.bootloader.r#type);
     log::info!("Installing bootloader to : {}", config.bootloader.location);
     if config.bootloader.r#type == "grub-efi" {
-        base::install_bootloader_efi(PathBuf::from(config.bootloader.location));
+        base::install_bootloader_efi(PathBuf::from(config.bootloader.location), config.partition.encrypted);
     } else if config.bootloader.r#type == "grub-legacy" {
-        base::install_bootloader_legacy(PathBuf::from(config.bootloader.location));
+        base::install_bootloader_legacy(PathBuf::from(config.bootloader.location), config.partition.encrypted);
     }
     println!();
     log::info!("Adding Locales : {:?}", config.locale.locale);
