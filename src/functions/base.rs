@@ -36,7 +36,7 @@ pub fn install_base_packages(kernel: String) {
         "crystal-core",
         "crystal-branding",
         // Extra goodies
-        "neofetch",
+        "fastfetch",
         "btrfs-progs",
         "base-devel",
         // Fonts
