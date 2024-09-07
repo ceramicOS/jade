@@ -34,7 +34,6 @@ pub fn install_base_packages(kernel: String) {
         "curl",
         // Base Crystal
         "crystal-core",
-        "crystal-branding",
         // Extra goodies
         "fastfetch",
         "btrfs-progs",
