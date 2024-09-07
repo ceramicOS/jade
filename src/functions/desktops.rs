@@ -316,7 +316,6 @@ fn install_kde() {
     install(vec![
         "xorg",
         "plasma",
-        "plasma-wayland-session",
         "kde-utilities",
         "kde-system",
         "pipewire",
