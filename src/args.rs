@@ -64,10 +64,6 @@ pub enum Command {
     #[clap(name = "flatpak")]
     Flatpak,
 
-    /// Setup Unakite
-    #[clap(name = "unakite")]
-    Unakite(UnakiteArgs),
-
     /// Read Jade installation config
     #[clap(name = "config")]
     Config {
@@ -99,8 +95,13 @@ pub struct PartitionArgs {
     #[clap(long)]
     pub efi: bool,
 
+    /// If the install destination should be encrypted
     #[clap(long)]
-    pub unakite: bool,
+    pub encrypted: bool,
+
+    /// The password to use for the encrypted partition
+    #[clap(long, required_if("encrypted", "true"))]
+    pub password: String,
 
     /// The partitions to use for manual partitioning
     #[clap(required_if_eq("mode", "Partition::Manual"), parse(try_from_str = parse_partitions))]
@@ -111,25 +112,6 @@ pub struct PartitionArgs {
 pub struct InstallBaseArgs {
     #[clap(long)]
     pub kernel: String,
-}
-
-#[derive(Debug, Args)]
-pub struct UnakiteArgs {
-    /// Root device of Unakite
-    #[clap(long)]
-    pub root: String,
-    /// Root device of Crystal
-    #[clap(long)]
-    pub oldroot: String,
-    /// Whether the system is an EFI system
-    #[clap(long)]
-    pub efi: bool,
-    /// Boot directory (if not EFI), or EFI directory
-    #[clap(long)]
-    pub efidir: String,
-    /// Blockdev of boot device
-    #[clap(long)]
-    pub bootdev: String,
 }
 
 #[derive(Debug)]
@@ -173,6 +155,9 @@ pub enum BootloaderSubcommand {
     GrubEfi {
         /// The directory to install the EFI bootloader to
         efidir: PathBuf,
+
+        /// Wether the install destination is encrypted
+        encrypted: bool,
     },
 
     /// Install GRUB in legacy (BIOS) mode
@@ -180,6 +165,9 @@ pub enum BootloaderSubcommand {
     GrubLegacy {
         /// The device to install the bootloader to
         device: PathBuf,
+
+        /// Wether the install destination is encrypted
+        encrypted: bool,
     },
 }
 
