@@ -1,0 +1,41 @@
+// Base Arch
+base
+linux-firmware
+networkmanager
+man-db
+man-pages
+nano
+sudo
+curl
+// Base Crystal
+// crystal-core
+// crystal-branding
+// Extra goodies
+fastfetch
+btrfs-progs
+base-devel
+// Fonts
+noto-fonts
+noto-fonts-emoji
+noto-fonts-cjk
+noto-fonts-extra
+ttf-nerd-fonts-symbols-common
+vazirmatn-fonts
+// Common packages for all desktops
+xterm
+pipewire
+pipewire-pulse
+pipewire-alsa
+pipewire-jack
+wireplumber
+// crystal-first-setup
+// crystal-wallpapers
+power-profiles-daemon
+cups
+cups-pdf
+bluez
+bluez-cups
+bash-completion
+zsh-completions
+ttf-liberation
+dnsmasq

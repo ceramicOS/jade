@@ -1,3 +1,4 @@
+use crate::internal::config::get_packages;
 use crate::internal::exec::*;
 use crate::internal::files::append_file;
 use crate::internal::*;
@@ -20,51 +21,13 @@ pub fn install_base_packages(kernel: String) {
             }
         }
     };
-    install::install(vec![
-        // Base Arch
-        "base",
-        kernel_to_install,
-        format!("{kernel_to_install}-headers").as_str(),
-        "linux-firmware",
-        "networkmanager",
-        "man-db",
-        "man-pages",
-        "nano",
-        "sudo",
-        "curl",
-        // Base Crystal
-        "crystal-core",
-        "crystal-branding",
-        // Extra goodies
-        "fastfetch",
-        "btrfs-progs",
-        "base-devel",
-        // Fonts
-        "noto-fonts",
-        "noto-fonts-emoji",
-        "noto-fonts-cjk",
-        "noto-fonts-extra",
-        "ttf-nerd-fonts-symbols-common",
-        "vazirmatn-fonts",
-        // Common packages for all desktops
-        "xterm",
-        "pipewire",
-        "pipewire-pulse",
-        "pipewire-alsa",
-        "pipewire-jack",
-        "wireplumber",
-        "crystal-first-setup",
-        "crystal-wallpapers",
-        "power-profiles-daemon",
-        "cups",
-        "cups-pdf",
-        "bluez",
-        "bluez-cups",
-        "bash-completion",
-        "zsh-completions",
-        "ttf-liberation",
-        "dnsmasq",
-    ]);
+    let kernel_headers_to_install = format!("{kernel_to_install}-headers");
+    let pkg_list = get_packages();
+    let mut pkgs: Vec<&str> = pkg_list.iter().map(|pkg| pkg.as_str()).collect();
+    pkgs.insert(1, kernel_to_install);
+    pkgs.insert(2, kernel_headers_to_install.as_str());
+
+    install::install(pkgs);
     files::copy_file("/etc/pacman.conf", "/mnt/etc/pacman.conf");
 
     exec_eval(

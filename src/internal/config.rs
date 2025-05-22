@@ -265,3 +265,22 @@ pub fn read_config(configpath: PathBuf) {
     }
     println!("Installation finished! You may reboot now!")
 }
+
+/// compile a `Vec` of pacman/arch packages.
+pub fn get_packages() -> Vec<String> {
+    // fetch pkgs
+    let pkg_buf = include_str!("../../packages.x86_64");
+    let mut packages: Vec<String> = pkg_buf.lines().map(|line| line.to_string()).collect();
+    packages.retain(|line| {
+        // filter out blank or commented lines
+        if line.is_empty() {
+            false
+        } else if line.starts_with("//") || line.starts_with("#") {
+            false
+        } else {
+            true
+        }
+    });
+
+    packages
+}

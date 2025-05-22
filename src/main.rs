@@ -91,3 +91,28 @@ fn main() {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::internal::config::get_packages;
+
+    use super::*;
+    #[test]
+    fn print_out() {
+        let pkg_list = get_packages();
+        for line in pkg_list {
+            println!("{line}")
+        }
+        // assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn std_method() {
+        let pkg_list = include_str!("../test.txt");
+        // println!(pkg_list);
+
+        for line in pkg_list.lines() {
+            println!("{line}")
+        }
+    }
+}
