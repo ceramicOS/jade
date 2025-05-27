@@ -28,7 +28,7 @@ pub enum Command {
 
     /// Setup Timeshift
     #[clap(name = "setup-timeshift")]
-    SetupTimeshift,
+    SetupTimeshift { bootloader: String },
 
     /// Install the bootloader
     #[clap(name = "bootloader")]
@@ -180,6 +180,17 @@ pub enum BootloaderSubcommand {
     GrubLegacy {
         /// The device to install the bootloader to
         device: PathBuf,
+    },
+
+    /// Install rEFInd
+    #[clap(name = "refind")]
+    Refind {
+        /// The directory to install the EFI bootloader to
+        efidir: PathBuf,
+        /// The the bootloader is installed on
+        device: PathBuf,
+        /// Make rEFInd the default/primary boot entry in the ESP
+        default: bool,
     },
 }
 

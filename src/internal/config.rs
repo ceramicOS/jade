@@ -32,8 +32,14 @@ struct Partition {
 
 #[derive(Serialize, Deserialize)]
 struct Bootloader {
+    /// which bootloader to be installed
     r#type: String,
+    /// esp mount location
     location: String,
+    /// esp block device
+    device: Option<String>,
+    /// make bootloader the default efi boot option?
+    default: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -115,9 +121,19 @@ pub fn read_config(configpath: PathBuf) {
     log::info!("Installing bootloader : {}", config.bootloader.r#type);
     log::info!("Installing bootloader to : {}", config.bootloader.location);
     if config.bootloader.r#type == "grub-efi" {
-        base::install_bootloader_efi(PathBuf::from(config.bootloader.location));
+        base::install_bootloader_grub_efi(PathBuf::from(config.bootloader.location));
     } else if config.bootloader.r#type == "grub-legacy" {
-        base::install_bootloader_legacy(PathBuf::from(config.bootloader.location));
+        base::install_bootloader_grub_legacy(PathBuf::from(config.bootloader.location));
+    } else if config.bootloader.r#type == "refind" {
+        if config.bootloader.device.is_none() {
+            crash("efi block device not specified", 1)
+        }
+        // installs refind, currently assumes that it should be installed as the default BOOT entry
+        base::install_bootloader_refind(
+            PathBuf::from(config.bootloader.location),
+            true,
+            PathBuf::from(config.bootloader.device.unwrap()),
+        );
     }
     println!();
     log::info!("Adding Locales : {:?}", config.locale.locale);
@@ -186,7 +202,7 @@ pub fn read_config(configpath: PathBuf) {
     println!();
     log::info!("Enabling timeshift : {}", config.timeshift);
     if config.timeshift {
-        base::setup_timeshift();
+        base::setup_timeshift(config.bootloader.r#type);
     }
     println!();
     log::info!("Enabling flatpak : {}", config.flatpak);

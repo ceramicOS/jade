@@ -28,13 +28,20 @@ fn main() {
         Command::GenFstab => {
             base::genfstab();
         }
-        Command::SetupTimeshift => base::setup_timeshift(),
+        Command::SetupTimeshift { bootloader } => base::setup_timeshift(bootloader),
         Command::Bootloader { subcommand } => match subcommand {
             BootloaderSubcommand::GrubEfi { efidir } => {
-                base::install_bootloader_efi(efidir);
+                base::install_bootloader_grub_efi(efidir);
             }
             BootloaderSubcommand::GrubLegacy { device } => {
-                base::install_bootloader_legacy(device);
+                base::install_bootloader_grub_legacy(device);
+            }
+            BootloaderSubcommand::Refind {
+                efidir,
+                default,
+                device,
+            } => {
+                base::install_bootloader_refind(efidir, default, device);
             }
         },
         Command::Locale(args) => {
@@ -96,7 +103,7 @@ fn main() {
 mod tests {
     use crate::internal::config::get_packages;
 
-    use super::*;
+    // use super::*;
     #[test]
     fn print_out() {
         let pkg_list = get_packages();

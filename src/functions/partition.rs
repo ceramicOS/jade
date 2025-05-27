@@ -230,8 +230,8 @@ fn partition_with_efi(device: &Path, unakite: bool) {
                 String::from(&device),
                 String::from("mkpart"),
                 String::from("fat32"),
-                String::from("0"),
-                String::from("300"),
+                String::from("0%"),     // start at 0% for auto-alignment
+                String::from("512MIB"), // bumped partition size from 300 Mb to 500 Mb to give us plenty of wiggle room with refind
             ],
         ),
         "create EFI partition",
@@ -331,17 +331,14 @@ fn part_nvme(device: &Path, efi: bool, unakite: bool) {
         umount("/mnt");
         mount(format!("{}p2", device).as_str(), "/mnt/", "subvol=@");
         files_eval(files::create_directory("/mnt/boot"), "create /mnt/boot");
-        files_eval(
-            files::create_directory("/mnt/boot/efi"),
-            "create /mnt/boot/efi",
-        );
         files_eval(files::create_directory("/mnt/home"), "create /mnt/home");
         mount(
             format!("{}p2", device).as_str(),
             "/mnt/home",
             "subvol=@home",
         );
-        mount(format!("{}p1", device).as_str(), "/mnt/boot/efi", "");
+        files_eval(files::create_directory("/mnt/efi"), "create /mnt/efi");
+        mount(format!("{}p1", device).as_str(), "/mnt/efi", "");
     } else if !efi && !unakite {
         exec_eval(
             exec("mkfs.ext4", vec![format!("{}p1", device)]),
@@ -439,17 +436,14 @@ fn part_nvme(device: &Path, efi: bool, unakite: bool) {
         umount("/mnt");
         mount(format!("{}p3", device).as_str(), "/mnt/", "subvol=@");
         files_eval(files::create_directory("/mnt/boot"), "create /mnt/boot");
-        files_eval(
-            files::create_directory("/mnt/boot/efi"),
-            "create /mnt/boot/efi",
-        );
         files_eval(files::create_directory("/mnt/home"), "create /mnt/home");
         mount(
             format!("{}p3", device).as_str(),
             "/mnt/home",
             "subvol=@home",
         );
-        mount(format!("{}p1", device).as_str(), "/mnt/boot/efi", "");
+        files_eval(files::create_directory("/mnt/efi"), "create /mnt/efi");
+        mount(format!("{}p1", device).as_str(), "/mnt/efi", "");
     } else if !efi && unakite {
         exec_eval(
             exec("mkfs.ext4", vec![format!("{}p1", device)]),
@@ -542,13 +536,10 @@ fn part_disk(device: &Path, efi: bool, unakite: bool) {
         umount("/mnt");
         mount(format!("{}2", device).as_str(), "/mnt/", "subvol=@");
         files_eval(files::create_directory("/mnt/boot"), "create /mnt/boot");
-        files_eval(
-            files::create_directory("/mnt/boot/efi"),
-            "create /mnt/boot/efi",
-        );
         files_eval(files::create_directory("/mnt/home"), "create /mnt/home");
         mount(format!("{}2", device).as_str(), "/mnt/home", "subvol=@home");
-        mount(format!("{}1", device).as_str(), "/mnt/boot/efi", "");
+        files_eval(files::create_directory("/mnt/efi"), "create /mnt/efi");
+        mount(format!("{}1", device).as_str(), "/mnt/efi", "");
     } else if !efi && !unakite {
         exec_eval(
             exec("mkfs.ext4", vec![format!("{}1", device)]),
@@ -639,13 +630,10 @@ fn part_disk(device: &Path, efi: bool, unakite: bool) {
         umount("/mnt");
         mount(format!("{}3", device).as_str(), "/mnt/", "subvol=@");
         files_eval(files::create_directory("/mnt/boot"), "create /mnt/boot");
-        files_eval(
-            files::create_directory("/mnt/boot/efi"),
-            "create /mnt/boot/efi",
-        );
         files_eval(files::create_directory("/mnt/home"), "create /mnt/home");
         mount(format!("{}3", device).as_str(), "/mnt/home", "subvol=@home");
-        mount(format!("{}1", device).as_str(), "/mnt/boot/efi", "");
+        files_eval(files::create_directory("/mnt/efi"), "create /mnt/efi");
+        mount(format!("{}1", device).as_str(), "/mnt/efi", "");
     } else if !efi && unakite {
         exec_eval(
             exec("mkfs.ext4", vec![format!("{}1", device)]),
